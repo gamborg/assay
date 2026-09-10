@@ -1,0 +1,37 @@
+{
+  "name": "assay",
+  "version": "0.1.0",
+  "description": "An evaluation harness for tool-using agents: run scenarios against multiple models, capture traces, and gate on behaviour rather than vibes.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Anders Gamborg <anders@agamborg.dk>",
+  "engines": {
+    "node": ">=20.10.0"
+  },
+  "bin": {
+    "assay": "./bin/assay.js"
+  },
+  "exports": {
+    ".": "./lib/index.js"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "scenarios",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test test/",
+    "assay": "node bin/assay.js"
+  },
+  "keywords": [
+    "agents",
+    "evaluation",
+    "eval",
+    "llm",
+    "mcp",
+    "tool-use",
+    "regression-testing"
+  ]
+}
