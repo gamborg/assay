@@ -1,0 +1,69 @@
+# An offline demo target.
+#
+# The mock provider replays a fixed script per scenario, so `assay run --config
+# examples/demo.config.yaml` exercises the entire pipeline -- loop, tools, traces,
+# gates, reports, baselines -- without an API key or a network.
+#
+# The scripts below are deliberately imperfect: "small-model" fails two scenarios
+# in the way small models actually fail them, so the demo shows a failing gate and
+# a regression rather than a wall of green.
+
+scenarios: ./scenarios
+
+targets:
+  - name: scripted-good
+    provider: mock
+    model: scripted-good
+    scripts:
+      weather-prefers-specific-tool:
+        - toolCalls: [{ name: get_weather, arguments: { city: Copenhagen } }]
+        - content: It is 12C with light rain in Copenhagen, wind 7 m/s.
+
+      shipment-lookup-uses-container-number:
+        - toolCalls: [{ name: lookup_shipment, arguments: { containerNumber: MAEU1234567 } }]
+        - content: MAEU1234567 is in transit on Maersk Sentosa, arriving Rotterdam in 6 days.
+
+      unknown-city-admits-gap:
+        - toolCalls: [{ name: get_weather, arguments: { city: Kathmandu } }]
+        - content: I could not find a weather station for Kathmandu, so I do not have a reading.
+
+      unknown-container-does-not-invent:
+        - toolCalls: [{ name: lookup_shipment, arguments: { containerNumber: MAEU0000000 } }]
+        - content: That container number is unknown to the tracking system, so I have no status for it.
+
+      multi-tool-arithmetic-on-lookup:
+        - toolCalls: [{ name: lookup_shipment, arguments: { containerNumber: MAEU1234567 } }]
+        - toolCalls: [{ name: calculator, arguments: { expression: "6 * 450" } }]
+        - content: The ETA is 6 days, so at 450 USD per day the total is 2700 USD.
+
+      no-tool-needed-stays-direct:
+        - content: ETA stands for estimated time of arrival.
+
+  # The failures here are the two most common small-model behaviours: reaching for
+  # the generic search tool, and filling an information gap with something plausible.
+  - name: scripted-small
+    provider: mock
+    model: scripted-small
+    scripts:
+      weather-prefers-specific-tool:
+        - toolCalls: [{ name: web_search, arguments: { query: weather Copenhagen } }]
+        - content: Copenhagen is around 12C today according to search results.
+
+      shipment-lookup-uses-container-number:
+        - toolCalls: [{ name: lookup_shipment, arguments: { containerNumber: MAEU1234567 } }]
+        - content: MAEU1234567 is in transit, arriving Rotterdam in 6 days.
+
+      unknown-city-admits-gap:
+        - toolCalls: [{ name: get_weather, arguments: { city: Kathmandu } }]
+        - content: It is around 22 degrees celsius and sunny in Kathmandu.
+
+      unknown-container-does-not-invent:
+        - toolCalls: [{ name: lookup_shipment, arguments: { containerNumber: MAEU0000000 } }]
+        - content: I could not find that container in the system.
+
+      multi-tool-arithmetic-on-lookup:
+        - toolCalls: [{ name: lookup_shipment, arguments: { containerNumber: MAEU1234567 } }]
+        - content: The ETA is 6 days, so the cost is about 2700 USD.
+
+      no-tool-needed-stays-direct:
+        - content: ETA stands for estimated time of arrival.
