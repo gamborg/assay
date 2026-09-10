@@ -1,0 +1,40 @@
+# Does the agent reach for the specific tool, or the generic one?
+#
+# This is the single most common agent failure in production: a `web_search`
+# exists, so the model uses it for everything, and the authoritative tool sitting
+# right next to it never gets called.
+scenarios:
+  - id: weather-prefers-specific-tool
+    description: >
+      With both a weather tool and a generic search tool available, the agent
+      should use the weather tool and should not fall back to search.
+    prompt: What is the weather in Copenhagen right now?
+    tools: [get_weather, web_search]
+    tags: [tool-selection, core]
+    expect:
+      - toolCalled: get_weather
+      - toolNotCalled: web_search
+      - toolCalledWith:
+          tool: get_weather
+          args:
+            city: Copenhagen
+      - outputContains: ["12"]
+      - maxSteps: 3
+      - completes: true
+
+  - id: shipment-lookup-uses-container-number
+    description: >
+      The container number is in the prompt; the agent should pass it through
+      verbatim rather than paraphrasing or inventing one.
+    prompt: Where is container MAEU1234567 right now, and when does it arrive?
+    tools: [lookup_shipment, web_search]
+    tags: [tool-selection, core]
+    expect:
+      - toolCalled: lookup_shipment
+      - toolCalledWith:
+          tool: lookup_shipment
+          args:
+            containerNumber: MAEU1234567
+      - outputContains: [Rotterdam]
+      - toolNotCalled: web_search
+      - completes: true

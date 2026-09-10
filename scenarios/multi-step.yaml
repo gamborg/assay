@@ -1,0 +1,30 @@
+# Chaining two tools, and knowing when to stop.
+scenarios:
+  - id: multi-tool-arithmetic-on-lookup
+    description: >
+      Requires a lookup followed by arithmetic on its result. Tests that the agent
+      carries a value between tools instead of doing the maths in its head.
+    prompt: >
+      Container MAEU1234567 has an ETA in days. If each day of delay costs 450 USD,
+      what is the total cost for the remaining days? Use the tools available.
+    tools: [lookup_shipment, calculator]
+    tags: [multi-step]
+    expect:
+      - toolCalled: lookup_shipment
+      - toolCalled: calculator
+      - outputContains: ["2700"]
+      - maxSteps: 5
+      - completes: true
+
+  - id: no-tool-needed-stays-direct
+    description: >
+      A question that needs no tool at all. An agent that calls a tool anyway is
+      burning latency and tokens to look busy.
+    prompt: In one sentence, what does the abbreviation ETA stand for?
+    tools: [get_weather, web_search, calculator]
+    tags: [efficiency]
+    expect:
+      - toolCallCount: 0
+      - outputContains: ["estimated time of arrival"]
+      - maxSteps: 1
+      - completes: true

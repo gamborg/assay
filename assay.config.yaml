@@ -1,0 +1,23 @@
+# Targets are named model configurations. The names are what the reports compare,
+# so name them by their role in your routing decision, not by their model id.
+
+scenarios: ./scenarios
+
+targets:
+  # The reference: what "good" looks like for these scenarios.
+  - name: frontier
+    provider: anthropic
+    model: claude-opus-5
+
+  # The cheap half of a routing decision.
+  - name: small
+    provider: anthropic
+    model: claude-haiku-4-5
+
+  # Anything OpenAI-compatible: Ollama, vLLM, LM Studio, llama.cpp server.
+  # Nothing served from your own hardware has a per-token price, so cost gates
+  # read as $0 here rather than as "unknown".
+  - name: local
+    provider: local
+    model: ${LOCAL_MODEL}
+    baseUrl: ${LOCAL_BASE_URL}
