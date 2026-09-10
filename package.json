@@ -9,7 +9,8 @@
     "node": ">=20.10.0"
   },
   "bin": {
-    "assay": "./bin/assay.js"
+    "assay": "./bin/assay.js",
+    "assay-mcp": "./bin/assay-mcp.js"
   },
   "exports": {
     ".": "./lib/index.js"
@@ -23,7 +24,8 @@
   ],
   "scripts": {
     "test": "node --test test/",
-    "assay": "node bin/assay.js"
+    "assay": "node bin/assay.js",
+    "mcp": "node bin/assay-mcp.js"
   },
   "keywords": [
     "agents",
@@ -36,6 +38,7 @@
   ],
   "dependencies": {
     "@anthropic-ai/sdk": "^0.124.0",
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "yaml": "^2.9.0"
   }
 }
