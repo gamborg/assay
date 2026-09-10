@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: ['20.x', '22.x']
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - run: npm ci
+      - run: npm test
+
+      # The harness evaluating itself. The scripted target is deterministic, so
+      # this asserts that the pipeline still produces the outcomes it produced
+      # yesterday -- loop, tools, gates, reports and the exit code all included.
+      - name: Self-check against the offline demo
+        run: |
+          node bin/assay.js run \
+            --config examples/demo.config.yaml \
+            --target scripted-good \
+            --save false

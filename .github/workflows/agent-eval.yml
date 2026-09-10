@@ -1,0 +1,42 @@
+# Evaluation as a CI gate, against real models.
+#
+# Not enabled by default: it costs money on every run and needs a key. It is here
+# because this is the shape the harness is actually for -- a scheduled regression
+# suite that tells you a model or prompt change made your agent worse, before your
+# users do.
+#
+# To use it: add ANTHROPIC_API_KEY to the repository secrets, commit a baseline
+# (`assay baseline`), and remove the `if: false` below.
+
+name: Agent evaluation
+
+on:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+jobs:
+  evaluate:
+    if: false
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: npm
+      - run: npm ci
+
+      # Exits 1 on a regression against the committed baseline, 2 if the harness
+      # itself could not run. Those need different people to look at them.
+      - name: Gate against the baseline
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node bin/assay.js run --gate --target frontier
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: assay-runs
+          path: .assay/runs/
